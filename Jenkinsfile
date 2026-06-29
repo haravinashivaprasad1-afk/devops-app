@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_HUB_USER = 'YOUR_DOCKERHUB_USERNAME'
+        DOCKER_HUB_USER = 'haravinashivaprasad1'
         IMAGE_NAME      = 'devops-app'
     }
     stages {
