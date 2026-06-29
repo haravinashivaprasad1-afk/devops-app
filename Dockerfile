@@ -4,11 +4,9 @@ WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Swapped out the deleted openjdk image for the official Eclipse Temurin runner
 FROM eclipse-temurin:8-jre-jammy
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
 EOF
-
