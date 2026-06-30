@@ -31,11 +31,21 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 sh """
-                    cat k8s-deployment.yaml | docker run -i --rm --network host \
-                        -v /etc/kubernetes/admin.conf:/root/.kube/config:ro \
+                    KCFG=\$(docker run --rm -v /:/host:ro alpine sh -c '
+                        for f in /host/root/.kube/config /host/etc/kubernetes/admin.conf /host/home/*/.kube/config; do
+                            [ -f "\$f" ] && echo "\$f" && exit 0
+                        done
+                    ' 2>/dev/null)
+                    if [ -z "\$KCFG" ]; then
+                        echo "ERROR: No kubeconfig found on host"
+                        exit 1
+                    fi
+                    HOST_PATH=\$(echo \$KCFG | sed 's|^/host||')
+                    cat k8s-deployment.yaml | docker run -i --rm --network host \\
+                        -v "\$HOST_PATH":/root/.kube/config:ro \\
                         bitnami/kubectl:latest apply --validate=false -f -
-                    docker run --rm --network host \
-                        -v /etc/kubernetes/admin.conf:/root/.kube/config:ro \
+                    docker run --rm --network host \\
+                        -v "\$HOST_PATH":/root/.kube/config:ro \\
                         bitnami/kubectl:latest rollout restart deployment/devops-app
                 """
             }
