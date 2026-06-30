@@ -32,10 +32,10 @@ pipeline {
             steps {
                 sh """
                     cat k8s-deployment.yaml | docker run -i --rm --network host \
-                        -v /root/.kube:/root/.kube:ro \
+                        -v /etc/kubernetes/admin.conf:/root/.kube/config:ro \
                         bitnami/kubectl:latest apply --validate=false -f -
                     docker run --rm --network host \
-                        -v /root/.kube:/root/.kube:ro \
+                        -v /etc/kubernetes/admin.conf:/root/.kube/config:ro \
                         bitnami/kubectl:latest rollout restart deployment/devops-app
                 """
             }
