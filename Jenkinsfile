@@ -1,5 +1,21 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: jnlp
+    image: jenkins/inbound-agent:latest-jdk17
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command:
+    - cat
+    tty: true
+"""
+        }
+    }
     environment {
         DOCKER_HUB_USER = 'haravinashivaprasad1'
         IMAGE_NAME      = 'devops-app'
@@ -30,8 +46,10 @@ pipeline {
         }
         stage('Deploy to Minikube') {
             steps {
-                sh "kubectl apply -f k8s-deployment.yaml"
-                sh "kubectl rollout restart deployment/devops-app"
+                container('kubectl') {
+                    sh "kubectl apply -f k8s-deployment.yaml"
+                    sh "kubectl rollout restart deployment/devops-app"
+                }
             }
         }
     }

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: devops-app
-        image: YOUR_DOCKERHUB_USERNAME/devops-app:latest
+        image: haravinashivaprasad1/devops-app:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
