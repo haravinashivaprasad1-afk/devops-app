@@ -42,12 +42,12 @@ pipeline {
                     fi
                     KCFG_HOST=\$(echo \$KCFG | sed 's|^/host||')
                     HOME_DIR=\$(dirname "\$(dirname "\$KCFG_HOST")")
-                    cat k8s-deployment.yaml | docker run -i --rm --network host \\
+                    cat k8s-deployment.yaml | docker run -i --rm --network host --user root \\
                         -v "\$KCFG_HOST":"\$KCFG_HOST":ro \\
                         -v "\$HOME_DIR/.minikube":"\$HOME_DIR/.minikube":ro \\
                         -e HOME="\$HOME_DIR" \\
                         bitnami/kubectl:latest apply --validate=false -f -
-                    docker run --rm --network host \\
+                    docker run --rm --network host --user root \\
                         -v "\$KCFG_HOST":"\$KCFG_HOST":ro \\
                         -v "\$HOME_DIR/.minikube":"\$HOME_DIR/.minikube":ro \\
                         -e HOME="\$HOME_DIR" \\
