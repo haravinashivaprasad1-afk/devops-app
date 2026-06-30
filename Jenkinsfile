@@ -1,21 +1,5 @@
 pipeline {
-    agent {
-        kubernetes {
-            yaml """
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: jnlp
-    image: jenkins/inbound-agent:latest-jdk17
-  - name: kubectl
-    image: bitnami/kubectl:latest
-    command:
-    - cat
-    tty: true
-"""
-        }
-    }
+    agent any
     environment {
         DOCKER_HUB_USER = 'haravinashivaprasad1'
         IMAGE_NAME      = 'devops-app'
@@ -46,10 +30,23 @@ spec:
         }
         stage('Deploy to Minikube') {
             steps {
-                container('kubectl') {
-                    sh "kubectl apply -f k8s-deployment.yaml"
-                    sh "kubectl rollout restart deployment/devops-app"
-                }
+                sh """
+                    if [ ! -x ./kubectl ]; then
+                        curl -sLO https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl
+                        chmod +x ./kubectl
+                    fi
+                    ./kubectl config set-cluster in-cluster \
+                        --server=https://\$KUBERNETES_SERVICE_HOST:\$KUBERNETES_SERVICE_PORT \
+                        --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+                        --embed-certs > /dev/null
+                    ./kubectl config set-credentials jenkins \
+                        --token=\$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) > /dev/null
+                    ./kubectl config set-context in-cluster \
+                        --cluster=in-cluster --user=jenkins --namespace=default > /dev/null
+                    ./kubectl config use-context in-cluster > /dev/null
+                    ./kubectl apply -f k8s-deployment.yaml
+                    ./kubectl rollout restart deployment/devops-app
+                """
             }
         }
     }
