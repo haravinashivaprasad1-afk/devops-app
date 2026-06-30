@@ -31,10 +31,10 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 sh """
-                    cat k8s-deployment.yaml | docker run -i --rm \
+                    cat k8s-deployment.yaml | docker run -i --rm --network host \
                         -v /root/.kube:/root/.kube:ro \
-                        bitnami/kubectl:latest apply -f -
-                    docker run --rm \
+                        bitnami/kubectl:latest apply --validate=false -f -
+                    docker run --rm --network host \
                         -v /root/.kube:/root/.kube:ro \
                         bitnami/kubectl:latest rollout restart deployment/devops-app
                 """
