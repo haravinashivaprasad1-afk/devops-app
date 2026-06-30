@@ -36,9 +36,8 @@ pipeline {
                         chmod +x ./kubectl
                     fi
                     ./kubectl config set-cluster in-cluster \
-                        --server=https://\$KUBERNETES_SERVICE_HOST:\$KUBERNETES_SERVICE_PORT \
-                        --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
-                        --embed-certs > /dev/null
+                        --server=https://kubernetes.default.svc \
+                        --insecure-skip-tls-verify=true > /dev/null
                     ./kubectl config set-credentials jenkins \
                         --token=\$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) > /dev/null
                     ./kubectl config set-context in-cluster \
