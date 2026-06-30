@@ -31,20 +31,12 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 sh """
-                    if [ ! -x ./kubectl ]; then
-                        curl -sLO https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl
-                        chmod +x ./kubectl
-                    fi
-                    ./kubectl config set-cluster in-cluster \
-                        --server=https://kubernetes.default.svc \
-                        --insecure-skip-tls-verify=true > /dev/null
-                    ./kubectl config set-credentials jenkins \
-                        --token=\$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) > /dev/null
-                    ./kubectl config set-context in-cluster \
-                        --cluster=in-cluster --user=jenkins --namespace=default > /dev/null
-                    ./kubectl config use-context in-cluster > /dev/null
-                    ./kubectl apply -f k8s-deployment.yaml
-                    ./kubectl rollout restart deployment/devops-app
+                    cat k8s-deployment.yaml | docker run -i --rm \
+                        -v /root/.kube:/root/.kube:ro \
+                        bitnami/kubectl:latest apply -f -
+                    docker run --rm \
+                        -v /root/.kube:/root/.kube:ro \
+                        bitnami/kubectl:latest rollout restart deployment/devops-app
                 """
             }
         }
